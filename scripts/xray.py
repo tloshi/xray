@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Feature X-Ray command line: build, check and render-check an X-ray page.
+"""X-Ray command line: build, check and render-check an X-ray page.
 
     xray.py build <data.xray.json> [-o page.html] [--fix-refs] [--no-verify]
     xray.py check <page.html>            # has the cited code changed since, and which steps?
@@ -117,7 +117,7 @@ def render_page(document: dict, inline_mermaid: str | None, fragment: bool) -> s
     css = (ASSETS / "viewer.css").read_text(encoding="utf-8")
     scripts = "\n".join((ASSETS / name).read_text(encoding="utf-8") for name in JS_FILES)
     meta = document.get("meta") or {}
-    title = str(meta.get("title", "Feature X-Ray")).replace("<", "&lt;").replace(">", "&gt;")
+    title = str(meta.get("title", "X-Ray")).replace("<", "&lt;").replace(">", "&gt;")
     payload = json.dumps(document, ensure_ascii=False).replace("</", "<\\/")
     page = template
     for placeholder, value in (
@@ -194,7 +194,7 @@ def cmd_check(args: argparse.Namespace) -> int:
     page_path = Path(args.page).resolve()
     match = DATA_RE.search(page_path.read_text(encoding="utf-8"))
     if not match:
-        fail(f"{page_path}: not a Feature X-Ray page (no embedded data)")
+        fail(f"{page_path}: not a X-Ray page (no embedded data)")
         return EXIT_INVALID
     document = json.loads(match.group(1).replace("<\\/", "</"))
     build = document.get("_build") or {}

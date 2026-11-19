@@ -1,4 +1,4 @@
-"""Code-reference verification for a Feature X-Ray document.
+"""Code-reference verification for a X-Ray document.
 
 A diagram is only worth trusting if every step can be traced to real code.
 Each reference names a file, and ideally a line and the symbol expected
@@ -28,12 +28,17 @@ MAX_SUGGESTIONS = 5
 HASH_LENGTH = 12
 SKIP_DIRS = {".git", "build", "node_modules", ".gradle", ".idea", "out", "dist", "target", ".tokensave", ".kotlin"}
 def _declaration_pattern(name: str) -> re.Pattern[str]:
-    """Matches a line that declares `name` (Kotlin, Java, TypeScript, Python)."""
+    """Matches a line that declares `name` (Kotlin, Java, C#, TypeScript, JavaScript, Python, Go, Rust, Swift)."""
     n = re.escape(name)
     return re.compile(
         rf"\b(?:class|object|interface|typealias|record|def|function|enum)\s+(?:class\s+)?{n}\b"
         rf"|\bfun\s+(?:<[^>]*>\s*)?(?:[\w<>?,.\s]*\.)?{n}\s*[(<]"
-        rf"|\b(?:val|var|const)\s+(?:val\s+)?(?:[\w<>?,]+\.)?{n}\b"
+        rf"|\b(?:val|var|const|let)\s+(?:val\s+)?(?:[\w<>?,]+\.)?{n}\b"
+        rf"|\b(?:func|fn)\s+(?:\([^)]*\)\s*)?{n}\s*[(<]"
+        # a method without a keyword (TypeScript, JavaScript, Java, C#): `name(args): Type {`
+        rf"|^\s*(?:(?:public|private|protected|internal|static|async|override|abstract|final|readonly|get|set)\s+)*"
+        rf"(?:[\w<>\[\],.?]+\s+)?{n}\s*(?:<[^>]*>)?\([^;]*\)\s*(?::\s*[^={{;]+)?\s*\{{\s*$"
+        rf"|\b{n}\s*[:=]\s*(?:async\s*)?(?:\([^)]*\)|\w+)\s*=>"
     )
 
 

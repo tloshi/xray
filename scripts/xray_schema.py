@@ -1,4 +1,4 @@
-"""Structural validation of a Feature X-Ray data document.
+"""Structural validation of a X-Ray data document.
 
 The checks here are the ones that keep a diagram honest and readable:
 edges must point at real nodes, a decision must actually branch, a flow must
@@ -403,7 +403,7 @@ def _check_budget(doc: dict, report: Report, size_bytes: int | None) -> None:
     if long_text:
         over("texts longer than the budget", long_text, f"{b['text']} characters each", "Say it in fewer words.")
     if size_bytes is not None and size_bytes > b["kb"] * factor * 1024:
-        over("data file size", f"{size_bytes // 1024} KB", f"{b['kb'] * factor} KB", hint)
+        over("data size", f"{size_bytes / 1024:.1f} KB", f"{b['kb'] * factor} KB", hint)
 
 
 def validate(doc: dict, report: Report, size_bytes: int | None = None) -> None:

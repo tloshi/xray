@@ -1,4 +1,4 @@
-/* Feature X-Ray viewer — everything around the diagrams: header, key numbers,
+/* X-Ray viewer — everything around the diagrams: header, key numbers,
    troubleshooting, switches, narrative sections, glossary, sources. */
 window.XR = window.XR || {};
 

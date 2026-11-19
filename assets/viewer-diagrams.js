@@ -1,4 +1,4 @@
-/* Feature X-Ray viewer — turns structured diagram data into Mermaid source.
+/* X-Ray viewer — turns structured diagram data into Mermaid source.
    The agent never writes Mermaid by hand (except for kind "raw"): it describes
    nodes, edges and steps, and this file handles ids, escaping, shapes, colours
    and the two audience lenses. That is what keeps diagrams from breaking. */

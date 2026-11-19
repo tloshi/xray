@@ -1,4 +1,4 @@
-/* Feature X-Ray viewer — pan / zoom for a diagram viewport.
+/* X-Ray viewer — pan / zoom for a diagram viewport.
    Zooms only the diagram, never the page. A press that does not move is
    reported as a click, because pointer capture swallows native click events
    on the SVG nodes underneath. */

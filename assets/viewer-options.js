@@ -1,4 +1,4 @@
-/* Feature X-Ray viewer — per-diagram options: focus modes, layout direction,
+/* X-Ray viewer — per-diagram options: focus modes, layout direction,
    legend filtering, the step-by-step walkthrough, image export and keyboard
    shortcuts. Everything here drives the highlight machinery in viewer-app.js
    through XR.app, so there is one code path for "show these nodes". */

@@ -35,6 +35,7 @@ TRANSCRIPT_GLOBS = [
 ]
 OPENCODE_GLOB = "~/.local/share/opencode/storage/message/*/*.json"
 LOOKBACK_SECONDS = 5
+SKILL_DIR = str(Path(__file__).resolve().parent.parent)
 
 
 def _state_file() -> Path:
@@ -87,7 +88,7 @@ def _text_len(content: object) -> int:
 def _tool_bucket(name: str, args: dict) -> str:
     path = str(args.get("file_path") or args.get("path") or "")
     if name == "Read":
-        if "/feature-xray/" in path:
+        if SKILL_DIR in path or "/skills/xray/" in path:
             return "read skill files"
         return "read source code" if path else "read"
     if name in {"Write", "Edit"}:

@@ -1,5 +1,5 @@
 ---
-name: feature-xray
+name: xray
 description: >-
   Produce a verified, interactive "X-ray" of how something works in this
   codebase: one HTML page with UML-style diagrams (flow, sequence, state,
@@ -12,7 +12,7 @@ description: >-
   even when they do not say "X-ray" or "diagram" — "how does checkout work?" is exactly this skill.
 ---
 
-# Feature X-Ray
+# X-Ray
 
 Turn *"how does checkout work?"* into a page a developer,
 a product owner and a manager can all read: the flow as diagrams, each
@@ -29,7 +29,7 @@ Two things make the page worth having, and both shape how you work:
   paid for again on each later step of the run. Work to the depth that was
   asked for and no further.
 
-This is read-only analysis: never change production code, resources, Gradle
+This is read-only analysis: never change production code, resources, build
 files or tests. Write only inside the output folder — `tempDocs/xray/` at the
 repository root unless the user names another.
 
@@ -48,8 +48,9 @@ the build warns when the data exceeds its budget.
 | Text per field, refs per item | 170 chars, 1 | 300 chars, 2 | 520 chars, 3 |
 | Also | switches | switches, data, glossary | tests, caveats, everything |
 
-A module overview ("anatomy", "the whole module") is `"kind": "module"`; its
-lists may be twice as long. Its recipe is in `references/craft.md` section 6.
+A module overview ("anatomy", "the whole module") is `"kind": "module"`; the
+page is headed **Anatomy** instead of X-Ray, and its lists may be twice as
+long. Its recipe is in `references/craft.md` section 6.
 
 ## Workflow
 

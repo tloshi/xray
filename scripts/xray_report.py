@@ -87,7 +87,7 @@ def render(folder: Path, out_path: Path) -> int:
         "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>"
         "<meta name='viewport' content='width=device-width, initial-scale=1'><title>X-Ray runs</title>"
         f"<style>{CSS}</style></head><body><main><h1>X-Ray runs</h1>"
-        "<p class='lede'>Every Feature X-Ray produced here: what was traced, with which model, what it cost in tokens "
+        "<p class='lede'>Every X-Ray produced here: what was traced, with which model, what it cost in tokens "
         "and what the page contains. Output tokens are what the model wrote; cached input is the context it re-read "
         "on each call.</p><div class='cards'>"
         + "".join(f"<div class='card'><div class='k'>{esc(k)}</div><div class='v'>{esc(v)}</div></div>" for k, v in cards)

@@ -1,4 +1,4 @@
-/* Feature X-Ray viewer — shared helpers: data access, translation, safe HTML. */
+/* X-Ray viewer — shared helpers: data access, translation, safe HTML. */
 window.XR = window.XR || {};
 
 (function (XR) {

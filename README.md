@@ -1,8 +1,8 @@
-# Feature X-Ray
+# X-Ray
 
 Ask how something works; get a page you can trust.
 
-Feature X-Ray is an agent skill that reads the code and produces one
+X-Ray is an agent skill that reads the code and produces one
 self-contained HTML page per feature or module: UML-style diagrams, a
 plain-language explanation of every step, a symptom-to-code troubleshooting
 table, and the configuration switches that change the behaviour. Every step is
@@ -29,21 +29,21 @@ For yourself, in every project (works for Claude Code and OpenCode, which both
 read `~/.claude/skills/`):
 
 ```bash
-git clone https://github.com/tloshi/feature-xray.git ~/.claude/skills/feature-xray
+git clone https://github.com/tloshi/xray.git ~/.claude/skills/xray
 ```
 
-Update later with `git -C ~/.claude/skills/feature-xray pull`.
+Update later with `git -C ~/.claude/skills/xray pull`.
 
 For a whole team, put it in the project so everyone gets it with the code:
 
 ```bash
-git clone https://github.com/tloshi/feature-xray.git && ./feature-xray/install.sh --project /path/to/your/repo
+git clone https://github.com/tloshi/xray.git && ./xray/install.sh --project /path/to/your/repo
 ```
 
-That copies the skill to `<your repo>/.claude/skills/feature-xray`; commit it
+That copies the skill to `<your repo>/.claude/skills/xray`; commit it
 there. `./install.sh --link` symlinks instead of copying, so a `git pull` in
 the clone updates the installed skill. On Windows, clone into
-`%USERPROFILE%\.claude\skills\feature-xray`.
+`%USERPROFILE%\.claude\skills\xray`.
 
 Requirements: Python 3.9+ (standard library only). Chrome, Edge or Chromium is
 optional and enables the render check. Open a new session after installing —
@@ -167,7 +167,7 @@ embeds it automatically.
 ## Layout
 
 ```
-feature-xray/
+xray/
 ├── SKILL.md            the workflow the agent follows
 ├── references/         tracing guide, data format, craft guide
 ├── examples/           a skeleton to copy and a complete real X-ray to learn from

@@ -58,7 +58,7 @@ Everything needed to write a valid X-ray, on one page. Open `schema.md`,
 |---|---|
 | flow node `type` | `start` · `action` (user does) · `process` (system does) · `screen` · `decision` · `external` (other system) · `store` (read/write) · `end` · `error` · `unknown` (path leaves what you could read) |
 | edge `kind` | `main` (normal path, mark it) · `optional` (side path, background) · `error` (red; automatic into an `error` node) |
-| participant / component `layer` | `user` · `ui` · `viewmodel` · `domain` · `data` · `shared` · `device` · `backend` · `external` — declare participants in this order |
+| participant / component `layer` | `user` · `ui` (screens, templates) · `viewmodel` (presentation logic: view model, component class, controller) · `domain` (business rules, services) · `data` (repositories, API and database clients) · `shared` · `device` · `backend` · `external` — declare participants in this order |
 | sequence step `kind` | `sync` · `reply` · `async` · `fail`; blocks: `alt` (branches with `when`), `opt`, `loop`, `note` |
 | other diagram kinds | `components` (`components` + `links`), `state` (`states` + `transitions`), `raw` (Mermaid text) |
 | `severity` | `high` · `medium` · `low` |
@@ -71,7 +71,8 @@ Everything needed to write a valid X-ray, on one page. Open `schema.md`,
 ## References
 
 Write `"path/File.kt#symbol"` and let the build find the line. `symbol` is any
-literal text on that line — a function name, a constant, a log message. The
+literal text on that line — a function name, a constant, a log message; it
+may itself contain `#`. The
 path is relative to the repository root or to `meta.sourceRoot` — point
 `sourceRoot` at the deepest folder the feature's files share and every
 reference gets shorter. Pick text
@@ -106,9 +107,12 @@ should occur in a file that step cites, or the build warns.
    project profile names this project's layers and where they live.
 3. **Read functions, not files.** List a large file's signatures, then read
    only the methods on the path.
-4. **Note each branch and its condition**: `if`, `when`, early return,
-   validation, `catch`, parameter check.
+4. **Note each branch and its condition**: `if`, `when` / `switch`, early
+   return, validation, `catch`, parameter check, and the success and error
+   arms of an asynchronous call (`subscribe({next, error})`, `then` / `catch`).
+   In a UI template, follow an event binding to its handler.
 5. **Look for silent failure**: `filter` / `mapNotNull` / `firstOrNull`
    dropping items, `…OrNull` parsing, `.valueOrNull` + `filterNotNull()`,
-   `catch` that only logs, duplicates collapsed by `associateBy`, a loading
-   state nobody observes on error, a parameter that hides a control.
+   `catch` or an error callback that only logs, an unguarded `.find(...)`
+   result, duplicates collapsed into a map, a loading state nobody observes on
+   error, a parameter that hides a control.

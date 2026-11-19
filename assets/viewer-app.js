@@ -1,4 +1,4 @@
-/* Feature X-Ray viewer — the interactive part: diagram tabs, rendering,
+/* X-Ray viewer — the interactive part: diagram tabs, rendering,
    the step inspector, "show on diagram" highlighting, search, lens and theme. */
 window.XR = window.XR || {};
 
@@ -197,7 +197,7 @@ window.XR = window.XR || {};
   /* ---------- inspector ---------- */
 
   function ticketText(panel, item) {
-    const lines = [`[Feature X-Ray] ${XR.meta.title} (${XR.meta.module || ""}) › ${panel.d.title || panel.d.id} › "${item.label}"`];
+    const lines = [`[X-Ray] ${XR.meta.title} (${XR.meta.module || ""}) › ${panel.d.title || panel.d.id} › "${item.label}"`];
     if (item.what) lines.push(item.what);
     (item.refs || []).slice(0, 4).map(XR.normRef).forEach((r) =>
       lines.push(`Code: ${XR.refFull(r)}${r.symbol ? ` (${r.symbol})` : ""}`));
@@ -346,7 +346,7 @@ window.XR = window.XR || {};
   }
 
   function wireTopbar() {
-    document.querySelector(".brand").textContent = t("brand");
+    document.querySelector(".brand").textContent = t(D.kind === "module" ? "brand_module" : "brand");
     document.querySelector('[data-lens-btn="business"]').textContent = t("lens_business");
     document.querySelector('[data-lens-btn="developer"]').textContent = t("lens_developer");
     const input = document.getElementById("search");

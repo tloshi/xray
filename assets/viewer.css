@@ -1,4 +1,4 @@
-/* Feature X-Ray viewer — styles.
+/* X-Ray viewer — styles.
    Every colour is a token. Diagram colours are read from these tokens by
    viewer-diagrams.js, so CSS is the single source of truth for both themes. */
 

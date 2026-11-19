@@ -53,7 +53,9 @@ Read each hop; do not infer a hop from a name. At every layer record what
 happens, the branch conditions, and `file#symbol` for each.
 
 - **Screen / view.** What the user does, which handler it calls, what it
-  observes, which dialogs it can show, how it navigates.
+  observes, which dialogs it can show, how it navigates. In a template-based
+  UI, follow the event binding (`(click)="save()"`, `onClick={save}`) from the
+  template to the handler.
 - **Presentation logic** (view model, presenter, controller). Usually thin:
   it calls services and posts state or one-shot events. Note how errors reach
   the screen — or do not.
@@ -98,8 +100,10 @@ Walk the path a second time looking only for ways it goes wrong.
 - **Parse to null** — `toBigDecimalOrNull`, `toIntOrNull`, date parsing with a
   fallback: a value in an unexpected format quietly becomes empty.
 - **Unwrapped results** — a failure with a reason is turned into nothing.
-- **Swallowed errors** — `catch` blocks that log and continue, a default
-  returned on failure.
+- **Swallowed errors** — `catch` blocks or error callbacks that only log
+  (`error: console.error`), a default returned on failure.
+- **Unguarded lookups** — `.find(...)`, `[0]`, a map lookup used without
+  checking that something was found.
 - **Guards** — early returns and validations that block the flow; what does
   the user see when one fires? Nothing at all is a finding.
 - **Mismatched gates** — the UI allows something the business check rejects,

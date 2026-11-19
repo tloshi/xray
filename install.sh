@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# Installs the Feature X-Ray skill.
+# Installs the X-Ray skill.
 #
-#   ./install.sh                  for you, in every project   (~/.claude/skills/feature-xray)
-#   ./install.sh --project DIR    for everyone working in DIR (DIR/.claude/skills/feature-xray)
+#   ./install.sh                  for you, in every project   (~/.claude/skills/xray)
+#   ./install.sh --project DIR    for everyone working in DIR (DIR/.claude/skills/xray)
 #   ./install.sh --link           symlink instead of copy, so `git pull` here updates the install
 #
 # Claude Code and OpenCode both discover skills in .claude/skills/.
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
-target="$HOME/.claude/skills/feature-xray"
+target="$HOME/.claude/skills/xray"
 link=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --project) target="${2:?--project needs a directory}/.claude/skills/feature-xray"; shift 2 ;;
+    --project) target="${2:?--project needs a directory}/.claude/skills/xray"; shift 2 ;;
     --link) link=1; shift ;;
     -h|--help) sed -n '2,8p' "$0"; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 1 ;;
@@ -38,5 +38,5 @@ else
 fi
 
 python3 "$target/scripts/xray.py" --help >/dev/null
-echo "Feature X-Ray installed at $target"
+echo "X-Ray installed at $target"
 echo "Open a new session and ask, for example: \"quick: how does <feature> work in <module>?\""
