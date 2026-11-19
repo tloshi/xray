@@ -1,0 +1,447 @@
+{
+  "xray": 1,
+  "kind": "feature",
+  "meta": {
+    "title": "Feature name, as the business calls it",
+    "module": "modulename",
+    "package": "com.example.app.modulename",
+    "summary": "One plain-language paragraph: what this feature does, who uses it and when. No class names.",
+    "scope": "Covers the path from <trigger> to <outcome>. Does not cover <what you left out>.",
+    "sourceRoot": "app/modulename",
+    "depth": "standard",
+    "lang": "en"
+  },
+  "glance": [
+    {
+      "label": "Trigger",
+      "value": "What starts it"
+    },
+    {
+      "label": "Outcome",
+      "value": "What exists afterwards"
+    }
+  ],
+  "caveats": [
+    "What this checkout did not let you see, e.g. \"Resource files are not in this checkout, so UI wording is paraphrased.\" Delete this list if there is nothing to say."
+  ],
+  "diagrams": [
+    {
+      "id": "flow",
+      "kind": "flow",
+      "title": "End-to-end flow",
+      "subtitle": "From the trigger to the result, with every decision",
+      "groups": [
+        {
+          "id": "entry",
+          "title": "1 · Entry"
+        },
+        {
+          "id": "work",
+          "title": "2 · Processing"
+        },
+        {
+          "id": "result",
+          "title": "3 · Result"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "start",
+          "type": "start",
+          "group": "entry",
+          "label": "Where the user is when it begins"
+        },
+        {
+          "id": "user_does",
+          "type": "action",
+          "group": "entry",
+          "label": "What the user does",
+          "tech": "SomeFragment.onSomethingClicked",
+          "what": "Why the user does this and what they expect.",
+          "how": "What the code does in response.",
+          "refs": []
+        },
+        {
+          "id": "is_allowed",
+          "type": "decision",
+          "group": "entry",
+          "label": "A yes/no question about a condition?",
+          "tech": "SomeService.isAllowed",
+          "what": "What is being decided, in business terms.",
+          "switches": [
+            "SOME_PARAMETER"
+          ],
+          "refs": []
+        },
+        {
+          "id": "blocked",
+          "type": "error",
+          "group": "entry",
+          "label": "What the user sees when it is refused",
+          "what": "Say whether a message is shown or nothing happens."
+        },
+        {
+          "id": "system_does",
+          "type": "process",
+          "group": "work",
+          "label": "What the system does next",
+          "tech": "SomeService.doTheWork",
+          "what": "The business meaning of this step.",
+          "risks": [
+            "What can go wrong here, and whether anyone is told"
+          ],
+          "refs": []
+        },
+        {
+          "id": "calls_out",
+          "type": "external",
+          "group": "work",
+          "label": "The other system that is called",
+          "what": "What is sent and what comes back.",
+          "refs": []
+        },
+        {
+          "id": "saves",
+          "type": "store",
+          "group": "result",
+          "label": "What is saved, and where",
+          "what": "Which document or record changes.",
+          "refs": []
+        },
+        {
+          "id": "beyond",
+          "type": "unknown",
+          "group": "result",
+          "label": "Where the path leaves what you could read",
+          "what": "Use this instead of inventing an ending, e.g. \"Continues in the backend (not in this checkout)\". Delete it if every path was traced."
+        },
+        {
+          "id": "done",
+          "type": "end",
+          "group": "result",
+          "label": "The successful outcome"
+        }
+      ],
+      "edges": [
+        {
+          "from": "start",
+          "to": "user_does",
+          "kind": "main"
+        },
+        {
+          "from": "user_does",
+          "to": "is_allowed",
+          "kind": "main"
+        },
+        {
+          "from": "is_allowed",
+          "to": "blocked",
+          "label": "No"
+        },
+        {
+          "from": "is_allowed",
+          "to": "system_does",
+          "label": "Yes",
+          "kind": "main"
+        },
+        {
+          "from": "system_does",
+          "to": "calls_out",
+          "kind": "main"
+        },
+        {
+          "from": "calls_out",
+          "to": "saves",
+          "kind": "main"
+        },
+        {
+          "from": "saves",
+          "to": "done",
+          "kind": "main"
+        },
+        {
+          "from": "saves",
+          "to": "beyond",
+          "label": "in the background",
+          "kind": "optional"
+        }
+      ]
+    },
+    {
+      "id": "sequence",
+      "kind": "sequence",
+      "title": "Who calls whom",
+      "subtitle": "The same path, class by class",
+      "participants": [
+        {
+          "id": "user",
+          "label": "User",
+          "type": "actor",
+          "layer": "user"
+        },
+        {
+          "id": "screen",
+          "label": "The screen",
+          "tech": "SomeFragment",
+          "layer": "ui"
+        },
+        {
+          "id": "vm",
+          "label": "Screen logic",
+          "tech": "SomeViewModel",
+          "layer": "viewmodel"
+        },
+        {
+          "id": "service",
+          "label": "Business rules",
+          "tech": "SomeService",
+          "layer": "domain"
+        },
+        {
+          "id": "repo",
+          "label": "Data access",
+          "tech": "SomeRepository",
+          "layer": "data"
+        },
+        {
+          "id": "backend",
+          "label": "Backend service",
+          "layer": "backend"
+        }
+      ],
+      "steps": [
+        {
+          "from": "user",
+          "to": "screen",
+          "label": "Does the action"
+        },
+        {
+          "from": "screen",
+          "to": "vm",
+          "label": "Passes it on",
+          "tech": "onSomething()",
+          "refs": []
+        },
+        {
+          "alt": [
+            {
+              "when": "allowed",
+              "steps": [
+                {
+                  "from": "vm",
+                  "to": "service",
+                  "label": "Asks for the work",
+                  "tech": "doTheWork()",
+                  "refs": []
+                },
+                {
+                  "from": "service",
+                  "to": "repo",
+                  "label": "Loads or saves",
+                  "tech": "save()",
+                  "refs": []
+                },
+                {
+                  "from": "repo",
+                  "to": "backend",
+                  "label": "Calls the endpoint",
+                  "kind": "async"
+                },
+                {
+                  "from": "backend",
+                  "to": "repo",
+                  "label": "Answer",
+                  "kind": "reply"
+                },
+                {
+                  "from": "service",
+                  "to": "vm",
+                  "label": "Result",
+                  "kind": "reply"
+                }
+              ]
+            },
+            {
+              "when": "not allowed",
+              "steps": [
+                {
+                  "from": "vm",
+                  "to": "screen",
+                  "label": "Shows why not",
+                  "kind": "reply"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "components",
+      "kind": "components",
+      "title": "Building blocks",
+      "subtitle": "The classes involved, by layer",
+      "components": [
+        {
+          "id": "screen",
+          "layer": "ui",
+          "kind": "fragment",
+          "label": "The screen",
+          "tech": "SomeFragment",
+          "what": "What it shows.",
+          "refs": []
+        },
+        {
+          "id": "vm",
+          "layer": "viewmodel",
+          "kind": "viewmodel",
+          "label": "Screen logic",
+          "tech": "SomeViewModel",
+          "refs": []
+        },
+        {
+          "id": "service",
+          "layer": "domain",
+          "kind": "service",
+          "label": "Business rules",
+          "tech": "SomeService",
+          "refs": []
+        },
+        {
+          "id": "repo",
+          "layer": "data",
+          "kind": "repository",
+          "label": "Data access",
+          "tech": "SomeRepository",
+          "refs": []
+        },
+        {
+          "id": "db",
+          "layer": "data",
+          "kind": "store",
+          "label": "Local documents"
+        },
+        {
+          "id": "backend",
+          "layer": "backend",
+          "kind": "external",
+          "label": "Backend service"
+        }
+      ],
+      "links": [
+        {
+          "from": "screen",
+          "to": "vm"
+        },
+        {
+          "from": "vm",
+          "to": "service"
+        },
+        {
+          "from": "service",
+          "to": "repo"
+        },
+        {
+          "from": "repo",
+          "to": "db",
+          "label": "reads / writes"
+        },
+        {
+          "from": "repo",
+          "to": "backend",
+          "label": "REST"
+        }
+      ]
+    },
+    {
+      "id": "lifecycle",
+      "kind": "state",
+      "title": "Lifecycle",
+      "subtitle": "Only when something has states: a document, a mode. Delete it otherwise.",
+      "direction": "LR",
+      "states": [
+        {
+          "id": "open",
+          "label": "Open",
+          "initial": true,
+          "color": "blue",
+          "what": "What this state means for the user.",
+          "refs": []
+        },
+        {
+          "id": "completed",
+          "label": "Completed",
+          "color": "green",
+          "final": true,
+          "what": "What it means and what happens next.",
+          "refs": []
+        }
+      ],
+      "transitions": [
+        {
+          "from": "open",
+          "to": "completed",
+          "label": "what triggers the change",
+          "tech": "SomeService.complete",
+          "refs": []
+        }
+      ]
+    }
+  ],
+  "troubleshooting": [
+    {
+      "symptom": "What the user observes, in their words",
+      "cause": "The concrete mechanism behind it",
+      "check": "What someone can look at to confirm it",
+      "severity": "high",
+      "nodes": [
+        "is_allowed",
+        "blocked"
+      ],
+      "refs": []
+    }
+  ],
+  "findings": [
+    {
+      "title": "Something in the code that looks wrong",
+      "detail": "What the code does and why that looks unintended. No user-visible symptom is needed. Delete this list if you found nothing.",
+      "severity": "low",
+      "nodes": [
+        "system_does"
+      ],
+      "refs": []
+    }
+  ],
+  "switches": [
+    {
+      "key": "SOME_PARAMETER",
+      "effect": "What changes when it is on or off",
+      "default": "What happens when it is not set",
+      "nodes": [
+        "is_allowed"
+      ],
+      "refs": [],
+      "kind": "parameter",
+      "scope": "region"
+    }
+  ],
+  "data": [
+    {
+      "name": "The document or endpoint",
+      "kind": "document",
+      "direction": "write",
+      "what": "Which fields this feature sets.",
+      "refs": []
+    }
+  ],
+  "tests": [],
+  "glossary": [
+    {
+      "term": "Domain term",
+      "meaning": "What it means, in one sentence."
+    }
+  ],
+  "openQuestions": [
+    "Something you could not determine from the code."
+  ]
+}
