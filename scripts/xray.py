@@ -37,7 +37,7 @@ import xray_report  # noqa: E402
 import xray_update  # noqa: E402
 import xray_usage  # noqa: E402
 
-SKILL_VERSION = "1.3"
+SKILL_VERSION = "1.4"
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 JS_FILES = ["viewer-i18n.js", "viewer-core.js", "viewer-diagrams.js", "viewer-panzoom.js",

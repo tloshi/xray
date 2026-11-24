@@ -4,6 +4,14 @@ What each version of the skill changed. The version is `SKILL_VERSION` in
 `scripts/xray.py`; `xray.py --version` prints it, every page shows it in its
 footer and every run record stores it.
 
+## 1.4 — 2026-11-24
+
+- Walk through can play by itself: a play/pause button and a speed control
+  (1×, 2×, 0.5×) in the step bar, space to toggle. Each step stays for its
+  reading time, the view glides to it and the arrow leading into it is
+  animated. Stepping by hand or touching the diagram pauses it; it stops at
+  the last step. Motion is off for readers who ask for reduced motion.
+
 ## 1.3 — 2026-11-24
 
 - `xray.py update` (or `/xray update`) moves the installed skill to the latest

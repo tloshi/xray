@@ -182,6 +182,7 @@ window.XR = window.XR || {};
     }
     activate(ui.active);
     if (ui.highlight) applyHighlight(ui.highlight.targets, ui.highlight.title, false);
+    XR.options.afterRender();
     report(errors, bound, expected);
   }
 

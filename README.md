@@ -19,7 +19,7 @@ working tree before the page is written.
 | **Troubleshooting** | start from a symptom; "Show on diagram" highlights the steps to inspect |
 | **Code findings** | defects noticed while tracing — an inverted condition, a swallowed error — each with its reference |
 | **Limits of this analysis** | what the checkout did not contain, stated at the top instead of hidden |
-| **Diagram options** | happy-path / problems / decisions focus, layout direction, step-by-step walkthrough, legend filter, search, PNG and SVG export, full-screen, dark and light theme |
+| **Diagram options** | happy-path / problems / decisions focus, layout direction, step-by-step walkthrough with auto-play, legend filter, search, PNG and SVG export, full-screen, dark and light theme |
 | **For tickets** | "Copy for ticket" on any step gives a precise reference a developer can act on; "Copy link to step" deep-links to it |
 | **Trust** | references verified at build time; the page shows the commit it was built from; `check` reports when the cited code has changed |
 

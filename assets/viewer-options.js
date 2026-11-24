@@ -10,6 +10,12 @@ window.XR = window.XR || {};
   const { esc, t } = XR;
   const DIRECTED = ["flow", "components", "state"];
   const EXPORT_SCALE = 2;
+  /* Auto-play: how long a step stays on screen at normal speed, in milliseconds. */
+  const PLAY_BASE_MS = 2600;
+  const PLAY_MS_PER_CHAR = 22;
+  const PLAY_MAX_MS = 7000;
+  const PLAY_SPEEDS = [1, 2, 0.5];
+  const GLIDE_MS = 480;
 
   const nodesOf = (d) => (d.kind === "flow" ? d.nodes : d.kind === "components" ? d.components : d.states || []);
   const target = (d, item) => `${d.id}:${item.id}`;
@@ -84,38 +90,138 @@ window.XR = window.XR || {};
     return order.map((id) => d.nodes.find((n) => n.id === id)).filter(Boolean);
   }
 
+  /** The arrow that leads into a step from one already shown, so the eye can follow the move. */
+  function incomingEdge(panel, w) {
+    const node = w.order[w.i];
+    const shown = w.order.slice(0, w.i).map((n) => n.id);
+    const into = panel.d.edges.filter((e) => e.to === node.id && shown.includes(e.from));
+    if (!into.length) return null;
+    const previous = shown[shown.length - 1];
+    const edge = into.find((e) => e.from === previous) ||
+      into.sort((a, b) => shown.indexOf(b.from) - shown.indexOf(a.from))[0];
+    const svg = panel.stage.querySelector("svg");
+    if (!svg) return null;
+    /* Mermaid names an arrow L_<from>_<to>_<number>; the number differs between its versions. */
+    const stem = `L_${XR.nid(edge.from)}_${XR.nid(edge.to)}_`;
+    const named = new RegExp(`(^|-)${stem}\\d+$`);
+    return [...svg.querySelectorAll(`path[id*="${stem}"]`)].find((p) => named.test(p.id)) || null;
+  }
+
+  function markEdge(panel) {
+    panel.stage.querySelectorAll(".xr-edge-on").forEach((el) => el.classList.remove("xr-edge-on"));
+    const edge = panel.walk ? incomingEdge(panel, panel.walk) : null;
+    if (edge) edge.classList.add("xr-edge-on");
+  }
+
+  const stepMs = (w) => Math.min(PLAY_MAX_MS, PLAY_BASE_MS + String(w.order[w.i].what || "").length * PLAY_MS_PER_CHAR) / w.speed;
+
+  /** While playing, waits for the current step's reading time and then moves on; stops at the last step. */
+  function schedule(panel) {
+    clearTimeout(panel.walkTimer);
+    const w = panel.walk;
+    const meter = panel.walkBar.querySelector(".walk-meter");
+    meter.classList.remove("run");
+    if (!w || !w.playing) return;
+    const ms = stepMs(w);
+    meter.style.animationDuration = `${ms}ms`;
+    void meter.offsetWidth; /* restart the CSS animation */
+    meter.classList.add("run");
+    panel.walkTimer = setTimeout(() => {
+      if (!panel.walk || !panel.walk.playing) return;
+      if (panel.walk.i >= panel.walk.order.length - 1) setPlaying(panel, false);
+      else goTo(panel, panel.walk.i + 1);
+    }, ms);
+  }
+
   function showStep(panel) {
     const w = panel.walk;
     const node = w.order[w.i];
+    const stage = panel.stage;
+    /* Frame the step with no transition running, so the geometry that is measured is the settled one
+       even when steps follow each other quickly; then replay the move from the old view as a glide. */
+    clearTimeout(panel.glideTimer);
+    panel.viewport.classList.remove("gliding");
+    panel.viewport.classList.add("walking");
+    const from = stage.style.transform;
     XR.app.applyHighlight([target(panel.d, node)], node.label, false);
     XR.app.openInspector(panel, node);
-    panel.walkBar.hidden = false;
-    panel.viewport.classList.add("walking");
-    panel.walkBar.querySelector("span").textContent = t("walk_step", { i: w.i + 1, n: w.order.length });
-    panel.walkBar.querySelector("[data-prev]").disabled = w.i === 0;
-    panel.walkBar.querySelector("[data-next]").disabled = w.i === w.order.length - 1;
+    const to = stage.style.transform;
+    if (from && from !== to) {
+      stage.style.transform = from;
+      void stage.offsetWidth;
+      panel.viewport.classList.add("gliding");
+      stage.style.transform = to;
+      panel.glideTimer = setTimeout(() => panel.viewport.classList.remove("gliding"), GLIDE_MS);
+    }
+    markEdge(panel);
+    refreshBar(panel);
+  }
+
+  /** The step counter and the buttons; no effect on the diagram, so it is safe while the reader is panning. */
+  function refreshBar(panel) {
+    const w = panel.walk;
+    const bar = panel.walkBar;
+    bar.hidden = false;
+    bar.querySelector("span").textContent = t("walk_step", { i: w.i + 1, n: w.order.length });
+    bar.querySelector("[data-prev]").disabled = w.i === 0;
+    bar.querySelector("[data-next]").disabled = w.i === w.order.length - 1;
+    const play = bar.querySelector("[data-play]");
+    play.textContent = w.playing ? "❚❚" : "▶";
+    play.setAttribute("aria-label", t(w.playing ? "pause" : "play"));
+    play.title = t(w.playing ? "pause" : "play_title");
+    play.setAttribute("aria-pressed", String(w.playing));
+    bar.querySelector("[data-speed]").textContent = `${w.speed}×`;
+  }
+
+  function goTo(panel, i) {
+    panel.walk = { ...panel.walk, i };
+    showStep(panel);
+    schedule(panel);
   }
 
   function startWalk(panel) {
     const order = walkOrder(panel.d);
     if (!order.length) return;
-    panel.walk = { order, i: 0 };
+    panel.walk = { order, i: 0, playing: false, speed: panel.walkSpeed || PLAY_SPEEDS[0] };
     showStep(panel);
   }
 
+  /** A step taken by hand; it pauses auto-play, so the reader keeps control. */
   function stepWalk(panel, delta) {
     if (!panel.walk) return;
     const i = panel.walk.i + delta;
     if (i < 0 || i >= panel.walk.order.length) return;
-    panel.walk = { order: panel.walk.order, i };
-    showStep(panel);
+    panel.walk = { ...panel.walk, playing: false };
+    goTo(panel, i);
+  }
+
+  function setPlaying(panel, on) {
+    if (!panel.walk) return;
+    const atEnd = panel.walk.i >= panel.walk.order.length - 1;
+    panel.walk = { ...panel.walk, playing: on };
+    if (on && atEnd) { goTo(panel, 0); return; }
+    refreshBar(panel);
+    schedule(panel);
+  }
+
+  function nextSpeed(panel) {
+    if (!panel.walk) return;
+    const speed = PLAY_SPEEDS[(PLAY_SPEEDS.indexOf(panel.walk.speed) + 1) % PLAY_SPEEDS.length];
+    panel.walkSpeed = speed;
+    panel.walk = { ...panel.walk, speed };
+    refreshBar(panel);
+    schedule(panel);
   }
 
   function stopWalk(panel) {
     if (!panel || !panel.walk) return;
+    clearTimeout(panel.walkTimer);
+    clearTimeout(panel.glideTimer);
     panel.walk = null;
+    markEdge(panel);
     panel.walkBar.hidden = true;
-    panel.viewport.classList.remove("walking");
+    panel.walkBar.querySelector(".walk-meter").classList.remove("run");
+    panel.viewport.classList.remove("walking", "gliding");
   }
 
   /* ---------- export ---------- */
@@ -222,11 +328,17 @@ window.XR = window.XR || {};
     decorate(panel) {
       panel.el.querySelector(".dia-head").insertAdjacentHTML("beforeend", controlsHtml(panel.d));
       panel.viewport.insertAdjacentHTML("beforeend",
-        `<div class="walk-bar" hidden><button type="button" data-prev aria-label="${esc(t("prev"))}">◀</button><span></span>` +
-        `<button type="button" data-next aria-label="${esc(t("next"))}">▶</button>` +
-        `<button type="button" data-stop aria-label="${esc(t("close"))}">✕</button></div>`);
+        `<div class="walk-bar" hidden><button type="button" data-prev aria-label="${esc(t("prev"))}">←</button><span></span>` +
+        `<button type="button" data-next aria-label="${esc(t("next"))}">→</button><i class="walk-sep"></i>` +
+        `<button type="button" data-play aria-pressed="false"></button>` +
+        `<button type="button" class="wide" data-speed title="${esc(t("speed"))}" aria-label="${esc(t("speed"))}"></button>` +
+        `<button type="button" data-stop aria-label="${esc(t("close"))}">✕</button><i class="walk-meter"></i></div>`);
       panel.walkBar = panel.viewport.querySelector(".walk-bar");
       panel.walk = null;
+      /* Touching the diagram itself means the reader wants to look around: pause. */
+      panel.viewport.addEventListener("pointerdown", (e) => {
+        if (panel.walk && panel.walk.playing && !e.target.closest(".walk-bar")) setPlaying(panel, false);
+      });
 
       panel.el.addEventListener("click", (e) => {
         const focus = e.target.closest("[data-focus]");
@@ -242,6 +354,8 @@ window.XR = window.XR || {};
         if (exp) { exportDiagram(panel, exp.dataset.export); return; }
         if (e.target.closest("[data-prev]")) { stepWalk(panel, -1); return; }
         if (e.target.closest("[data-next]")) { stepWalk(panel, 1); return; }
+        if (e.target.closest("[data-play]")) { setPlaying(panel, !panel.walk.playing); return; }
+        if (e.target.closest("[data-speed]")) { nextSpeed(panel); return; }
         if (e.target.closest("[data-stop]")) { stopWalk(panel); XR.app.clearHighlight(); return; }
         const chip = e.target.closest("[data-pick]");
         if (chip) {
@@ -258,7 +372,16 @@ window.XR = window.XR || {};
 
     stopWalk,
 
+    /** Called after the diagrams were drawn again (lens, theme, layout): the arrow mark must be put back. */
+    afterRender() {
+      XR.ui.panels.forEach((p) => { if (p.walk) markEdge(p); });
+    },
+
     wireKeys() {
+      /* A hidden page should not keep playing to nobody. */
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) XR.ui.panels.forEach((p) => { if (p.walk && p.walk.playing) setPlaying(p, false); });
+      });
       document.addEventListener("keydown", (e) => {
         const typing = /^(input|textarea|select)$/i.test((e.target && e.target.tagName) || "");
         const panel = XR.ui.panels[XR.ui.active];
@@ -269,6 +392,7 @@ window.XR = window.XR || {};
         else if (e.key === "0") panel.pz.fit();
         else if (e.key === "ArrowRight" && panel.walk) { e.preventDefault(); stepWalk(panel, 1); }
         else if (e.key === "ArrowLeft" && panel.walk) { e.preventDefault(); stepWalk(panel, -1); }
+        else if (e.key === " " && panel.walk && !(e.target.closest && e.target.closest("button, a"))) { e.preventDefault(); setPlaying(panel, !panel.walk.playing); }
         else if (e.key === "Escape" && panel.walk) { stopWalk(panel); XR.app.clearHighlight(); }
       });
     }

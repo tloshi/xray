@@ -218,6 +218,18 @@ button { font: inherit; color: inherit; }
 }
 .walk-bar button:hover:not(:disabled) { background: color-mix(in srgb, var(--surface) 22%, transparent); }
 .walk-bar button:disabled { opacity: .35; cursor: default; }
+.walk-bar button[data-play] { letter-spacing: 2px; text-indent: 2px; }
+.walk-bar button.wide { width: auto; min-width: 40px; padding: 0 8px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.walk-bar button:focus-visible { outline: 2px solid var(--surface); outline-offset: 1px; }
+.walk-bar .walk-sep { width: 1px; height: 16px; margin: 0 4px; background: color-mix(in srgb, var(--surface) 30%, transparent); }
+.walk-bar .walk-meter {
+  position: absolute; left: 16px; right: 16px; bottom: 2px; height: 2px; border-radius: 2px;
+  background: var(--c-amber-bd); transform: scaleX(0); transform-origin: left center;
+}
+.walk-bar .walk-meter.run { animation: xr-meter linear forwards; }
+@keyframes xr-meter { to { transform: scaleX(1); } }
+/* A step change glides the diagram to the new step instead of jumping. */
+.diagram.gliding:not(.dragging) .stage { transition: transform .45s cubic-bezier(.2, .7, .2, 1); }
 .dia-head .dsub { color: var(--ink-3); font-size: 13.5px; }
 .print-title { display: none; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
 
@@ -290,7 +302,15 @@ button { font: inherit; color: inherit; }
 svg[id^="xr-svg"] .tech { font-family: var(--mono); font-size: 11px; opacity: .78; }
 .stage svg g.xr-node { cursor: pointer; }
 .stage svg.xr-hl g.xr-node:not(.xr-on),
-.stage svg.xr-hl g.edgePaths, .stage svg.xr-hl g.edgeLabels { opacity: .22; }
+.stage svg.xr-hl g.edgePaths path:not(.xr-edge-on), .stage svg.xr-hl g.edgeLabels { opacity: .22; }
+/* Walk-through: the arrow into the current step flows towards it, and the step itself pulses once. */
+.stage svg path.xr-edge-on {
+  stroke: var(--c-amber-bd) !important; stroke-width: 3px !important;
+  stroke-dasharray: 9 6 !important; animation: xr-flow .7s linear infinite;
+}
+@keyframes xr-flow { from { stroke-dashoffset: 15; } to { stroke-dashoffset: 0; } }
+.diagram.walking .stage svg g.xr-node.xr-on { animation: xr-arrive .5s ease-out; }
+@keyframes xr-arrive { from { opacity: .35; } to { opacity: 1; } }
 .stage svg g.xr-node.xr-on > :is(rect, polygon, path, circle, ellipse, g) { filter: drop-shadow(0 0 7px var(--c-amber-bd)); }
 .stage svg g.xr-node.xr-sel > :is(rect, polygon, path, circle, ellipse) { stroke-width: 3.5px !important; }
 
@@ -422,6 +442,8 @@ body[data-lens="business"] .dev-only { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .inspector, .toast { transition: none; }
+  .diagram.gliding .stage { transition: none; }
+  .stage svg path.xr-edge-on, .diagram.walking .stage svg g.xr-node.xr-on, .walk-bar .walk-meter.run { animation: none; }
 }
 
 @media print {
