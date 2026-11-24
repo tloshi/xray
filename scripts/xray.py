@@ -9,6 +9,7 @@
     xray.py usage start                  # begin measuring the tokens this run spends
     xray.py usage stop <data.xray.json>  # save the run record and show what was spent
     xray.py runs [folder] [--html FILE]  # compare saved runs, as a table or an overview page
+    xray.py update [--check]             # is there a newer version of the skill? get it
 
 Standard library only, so it runs anywhere Python 3.9+ is installed.
 """
@@ -33,9 +34,10 @@ import xray_schema  # noqa: E402
 import xray_layout  # noqa: E402
 import xray_index  # noqa: E402
 import xray_report  # noqa: E402
+import xray_update  # noqa: E402
 import xray_usage  # noqa: E402
 
-SKILL_VERSION = "1.2"
+SKILL_VERSION = "1.3"
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 JS_FILES = ["viewer-i18n.js", "viewer-core.js", "viewer-diagrams.js", "viewer-panzoom.js",
@@ -174,6 +176,7 @@ def cmd_build(args: argparse.Namespace) -> int:
         "refsWithSymbol": stats.with_symbol,
         "commit": git(root, "rev-parse", "--short", "HEAD"),
         "generatedAt": datetime.date.today().isoformat(),
+        "skillVersion": SKILL_VERSION,
         "files": stats.files,
         "warnings": len(report.warnings),
     }
@@ -379,6 +382,10 @@ def cmd_runs(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_update(args: argparse.Namespace) -> int:
+    return xray_update.run(SKILL_VERSION, args.check, say)
+
+
 def find_browser() -> str | None:
     for candidate in BROWSERS:
         if Path(candidate).is_file():
@@ -461,6 +468,10 @@ def main(argv: list[str] | None = None) -> int:
     runs.add_argument("--json", action="store_true", help="print the full records as JSON")
     runs.add_argument("--html", metavar="FILE", help="write an overview page of all runs, with links to the X-rays")
     runs.set_defaults(run=cmd_runs)
+
+    update = sub.add_parser("update", help="update the skill from the repository it was cloned from")
+    update.add_argument("--check", action="store_true", help="only report whether a newer version exists")
+    update.set_defaults(run=cmd_update)
 
     outline = sub.add_parser("outline", help="print a compact text view of an X-ray data file")
     outline.add_argument("data")

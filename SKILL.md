@@ -71,6 +71,10 @@ Once invoked, it always produces a page:
 - If the request names nothing to trace (a bare `/xray`), ask what feature or
   module is meant, then go.
 
+`/xray update` and `/xray version` are housekeeping, not a page: run
+`python3 <skill-dir>/scripts/xray.py update` (for "version", add `--check`),
+relay what it prints and stop.
+
 ## Depth — decide it first
 
 The depth sets what you produce and how much you may spend. Take it from the
@@ -200,4 +204,4 @@ only those functions, edit those steps in the data file, rebuild.
 | `references/tracing.md` | the tracing method in detail — on demand |
 | `profiles/<project>.md` | a project's layout and conventions — read the one that matches |
 | `examples/template.xray.json` | a full skeleton, if you want one to copy |
-| `scripts/xray.py` | `usage start/stop`, `build`, `check`, `outline`, `render-check`, `runs`, `index` |
+| `scripts/xray.py` | `usage start/stop`, `build`, `check`, `outline`, `render-check`, `runs`, `index`, `update` |

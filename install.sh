@@ -32,7 +32,7 @@ if [ "$link" = 1 ]; then
   ln -sfn "$here" "$target"
 else
   mkdir -p "$target"
-  for item in SKILL.md README.md references scripts assets examples profiles; do
+  for item in SKILL.md README.md CHANGELOG.md references scripts assets examples profiles; do
     cp -R "$here/$item" "$target/"
   done
 fi

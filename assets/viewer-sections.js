@@ -199,6 +199,7 @@ window.XR = window.XR || {};
     const produced = spent && spent.tokens ? " " + t("produced_with", {
       calls: spent.apiCalls, out: fmt(spent.tokens.output), cached: fmt(spent.tokens.cacheRead),
       model: (spent.models || []).join(", ") || "?" }) : "";
-    document.getElementById("footer").textContent = t("footer") + produced;
+    const version = XR.build.skillVersion ? " · X-Ray " + XR.build.skillVersion : "";
+    document.getElementById("footer").textContent = t("footer") + produced + version;
   };
 })(window.XR);

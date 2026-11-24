@@ -49,18 +49,44 @@ skills are loaded when a session starts.
 
 ## Update
 
-How you update depends on how you installed:
+From the AI console, type `/xray update` (or `/xray version` to only look).
+From a terminal:
+
+```bash
+python3 ~/.claude/skills/xray/scripts/xray.py update --check   # is there a newer version? changes nothing
+python3 ~/.claude/skills/xray/scripts/xray.py update           # get it
+```
+
+It lists what changed and moves the installed skill forward. It only ever
+fast-forwards: if files of the skill were edited locally it stops and says
+so. It is the one command that contacts the network — the git remote the
+skill was cloned from — and it runs only when you ask; a normal `/xray` run
+never does.
+
+This works when the skill is a git clone or linked to one. A copy cannot
+update itself, and for a team it should not: the copy in the team's
+repository is the version everybody uses, changed by a commit like any other
+code.
+
+How you update by hand depends on how you installed:
 
 | Installed with | Update with |
 |---|---|
-| `git clone … ~/.claude/skills/xray` | `git -C ~/.claude/skills/xray pull` |
-| `./install.sh --link` | `git pull` in the clone — the link already points at it |
+| `git clone … ~/.claude/skills/xray` | `/xray update`, or `git -C ~/.claude/skills/xray pull` |
+| `./install.sh --link` | `/xray update`, or `git pull` in the clone — the link already points at it |
 | `./install.sh` (a copy) | `git pull` in the clone, then `./install.sh` again |
 | `./install.sh --project <repo>` (a copy in the team's repository) | `git pull` in the clone, `./install.sh --project <repo>` again, then commit the changed `.claude/skills/xray` so everyone gets it with their next pull |
 
 Then open a new session; a running one keeps the version it started with.
 `python3 ~/.claude/skills/xray/scripts/xray.py --version` shows what is
-installed.
+installed, `update --check` whether it is the latest, and every page states
+the version it was built with in its footer. [CHANGELOG.md](CHANGELOG.md)
+lists what each version changed.
+
+**Releasing a version** (maintainers): raise `SKILL_VERSION` in
+`scripts/xray.py`, add the entry to `CHANGELOG.md`, commit, then
+`git tag -a v<version> -m "xray <version>" && git push --follow-tags`. The tag is what a copied
+installation is compared against.
 
 **Coming from 1.1.** Pages used to sit side by side in `xrayDocs/`. They keep
 working and are listed in the index under "Not filed under a module yet". To
