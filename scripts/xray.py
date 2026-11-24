@@ -257,7 +257,7 @@ def cmd_outline(args: argparse.Namespace) -> int:
     """Prints an X-ray as a few dozen lines: far cheaper to read than the JSON."""
     doc = load_document(Path(args.data).resolve())
     meta = doc.get("meta") or {}
-    say(f"{meta.get('title')}  [{doc.get('kind')}, {meta.get('depth', 'standard')}]  module: {meta.get('module')}")
+    say(f"{meta.get('title')}  [{doc.get('kind')}, {meta.get('depth', 'quick')}]  module: {meta.get('module')}")
     say(_short(meta.get("summary"), 300))
     for d in doc.get("diagrams") or []:
         items = d.get("nodes") or d.get("components") or d.get("states") or []

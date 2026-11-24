@@ -31,7 +31,7 @@ window.XR = window.XR || {};
     const badges = [];
     if (b.verified) badges.push(`<span class="badge ok">✓ ${esc(t("verified", { n: b.refsVerified }))}</span>`);
     else badges.push(`<span class="badge warn">${esc(t("unverified"))}</span>`);
-    badges.push(`<span class="badge" title="${esc(t("depth_hint"))}">${esc(t("depth_" + (m.depth || "standard")))}</span>`);
+    badges.push(`<span class="badge" title="${esc(t("depth_hint"))}">${esc(t("depth_" + (m.depth || "quick")))}</span>`);
     if (b.commit) badges.push(`<span class="badge mono">${esc(t("commit", { c: b.commit }))}</span>`);
     if (b.generatedAt) badges.push(`<span class="badge">${esc(t("generated", { d: b.generatedAt }))}</span>`);
     if (b.files) badges.push(`<span class="badge dev-only">${esc(t("files_tracked", { n: Object.keys(b.files).length }))}</span>`);

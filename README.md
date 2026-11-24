@@ -51,22 +51,28 @@ skills are loaded when a session starts.
 
 ## Use
 
-Just ask. For example:
+Type `/xray` followed by what you want to understand (`@xray` in OpenCode).
+That always produces a page; a question without it gets a normal answer.
 
-- *How does applying a discount code work in checkout? Some items get no discount — show me where it can break.*
-- *I need a flow of the refund process for a meeting with the product owners.*
-- *Make an overview of the whole checkout module for a new colleague.*
-- *… in German* / *… auf Deutsch* — the page and the viewer follow the language you ask for (English, German and Albanian viewer labels are built in).
+- `/xray how does login work?` — quick: just the flow, the cheapest (the default)
+- `/xray standard: how does applying a discount code work in checkout?` — adds the call sequence, findings, data
+- `/xray deep: where exactly can the refund process break?` — everything
+- `/xray anatomy of the checkout module` — an overview page of a whole module
 
-Pages are written to `tempDocs/xray/` unless you name another folder.
+Add the language if you want one other than English ("in German"). English,
+German and Albanian viewer labels are built in.
+
+Pages are written to `xrayDocs/` at the root of the project unless you name
+another folder. The reply always begins with `X-ray page:` and the path, so
+you know a page was made and where it is.
 
 ## Commands
 
 ```bash
-python3 scripts/xray.py build tempDocs/xray/<name>.xray.json          # validate, verify references, write the page
-python3 scripts/xray.py build tempDocs/xray/<name>.xray.json --fix-refs   # snap drifted line numbers to their symbol
-python3 scripts/xray.py render-check tempDocs/xray/<name>.html        # confirm every diagram draws (headless Chrome)
-python3 scripts/xray.py check tempDocs/xray/<name>.html               # has the cited code changed? exits 2 if stale
+python3 scripts/xray.py build xrayDocs/<name>.xray.json          # validate, verify references, write the page
+python3 scripts/xray.py build xrayDocs/<name>.xray.json --fix-refs   # snap drifted line numbers to their symbol
+python3 scripts/xray.py render-check xrayDocs/<name>.html        # confirm every diagram draws (headless Chrome)
+python3 scripts/xray.py check xrayDocs/<name>.html               # has the cited code changed? exits 2 if stale
 ```
 
 `check` is CI-friendly: run it over the committed pages to learn which X-rays
@@ -98,8 +104,8 @@ Every request has a depth, and the depth is a budget the build checks.
 
 | Depth | You get | Ask for it with |
 |---|---|---|
-| **quick** | the flow, a few troubleshooting rows, the switches | "quick", "just the flow" |
-| **standard** (default) | flow + call sequence, troubleshooting, findings, switches, data | no qualifier |
+| **quick** (default) | the flow, a few troubleshooting rows, the switches | no qualifier |
+| **standard** | flow + call sequence, troubleshooting, findings, switches, data | "standard" |
 | **deep** | drill-down flows, components, state, tests, everything | "deep", "full", "where exactly can it break" |
 
 Measured on a large Android codebase with the same model (first pass of each run):
@@ -126,9 +132,9 @@ tokens by kind, model calls, what was read, the model, the commit, the depth
 and the size of the result. The page footer shows the same numbers.
 
 ```bash
-python3 scripts/xray.py runs tempDocs/xray          # table of all runs
-python3 scripts/xray.py runs tempDocs/xray --json   # the full records
-python3 scripts/xray.py runs tempDocs/xray --html tempDocs/xray/runs.html   # an overview page with links
+python3 scripts/xray.py runs xrayDocs          # table of all runs
+python3 scripts/xray.py runs xrayDocs --json   # the full records
+python3 scripts/xray.py runs xrayDocs --html xrayDocs/runs.html   # an overview page with links
 ```
 
 Set `XRAY_PRICES="in=…,out=…,cache_read=…,cache_write=…"` (per million tokens)

@@ -26,7 +26,7 @@ SEVERITIES = {"high", "medium", "low"}
 MAX_NODE_LABEL = 60
 MAX_STEP_LABEL = 72
 MAX_GROUP_TITLE = 34
-DEFAULT_DEPTH = "standard"
+DEFAULT_DEPTH = "quick"
 # What each depth may spend. An X-ray costs tokens to write and to read back on
 # every later step, so the budget is part of the contract, not a suggestion.
 BUDGET = {
@@ -388,8 +388,10 @@ def _check_budget(doc: dict, report: Report, size_bytes: int | None) -> None:
                 over(f"sequence {d.get('id')!r} messages", n, b["messages"],
                      "A quick X-ray has no sequence diagram." if not b["messages"] else hint)
     extra = sum(1 for d in diagrams if d.get("kind") not in {"flow", "sequence"})
-    if extra > b["extra_diagrams"] * factor:
-        over("components / state / raw diagrams", extra, b["extra_diagrams"] * factor, hint)
+    # A module page is a map, so even a quick one needs its architecture diagram.
+    allowed_extra = max(1, b["extra_diagrams"] * factor) if factor > 1 else b["extra_diagrams"]
+    if extra > allowed_extra:
+        over("components / state / raw diagrams", extra, allowed_extra, hint)
     for key, limit in (("troubleshooting", b["rows"]), ("findings", b["findings"])):
         if len(doc.get(key) or []) > limit * factor:
             over(f"{key} rows", len(doc[key]), limit * factor, "Keep the ones a reader would act on.")

@@ -4,7 +4,7 @@ A profile tells the skill how one codebase is laid out, so a run does not
 spend tokens rediscovering it. Keep it under 40 lines.
 
 The skill looks for `profile.md` in the output folder first (default
-`tempDocs/xray/profile.md` in the repository), then for a file here whose name
+`xrayDocs/profile.md` in the repository), then for a file here whose name
 matches the repository. With no profile, the first run discovers the layout
 and writes `profile.md` to the output folder.
 

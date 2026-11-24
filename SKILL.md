@@ -1,15 +1,13 @@
 ---
 name: xray
 description: >-
-  Produce a verified, interactive "X-ray" of how something works in this
-  codebase: one HTML page with UML-style diagrams (flow, sequence, state,
+  Produce a verified, interactive X-ray page of how a feature or a whole module
+  works in this codebase: UML-style diagrams (flow, sequence, state,
   components), a symptom-to-code troubleshooting map, configuration switches and
-  every step traced to file:line. Use this whenever someone asks how a feature,
-  screen, flow or whole module works; wants a diagram, UML, flowchart, sequence
-  diagram, architecture overview or "anatomy" of a module; needs to explain
-  behaviour to a product owner, lead or manager; is onboarding to a
-  module; or is hunting a bug and wants to see where a flow can break. Use it
-  even when they do not say "X-ray" or "diagram" — "how does checkout work?" is exactly this skill.
+  every step traced to file:line. Use ONLY when the user explicitly invokes it
+  — `/xray ...` or `@xray ...` — or asks in so many words for an X-ray or an
+  anatomy page. Do not use it for an ordinary "how does X work?" question;
+  answer those in the conversation as usual.
 ---
 
 # X-Ray
@@ -30,18 +28,32 @@ Two things make the page worth having, and both shape how you work:
   asked for and no further.
 
 This is read-only analysis: never change production code, resources, build
-files or tests. Write only inside the output folder — `tempDocs/xray/` at the
+files or tests. Write only inside the output folder — `xrayDocs/` at the
 repository root unless the user names another.
+
+## When this runs
+
+Only on an explicit request: `/xray ...`, `@xray ...`, or the user asking in so
+many words for an X-ray or an anatomy page. An ordinary question is answered in
+the conversation as usual and does not start this skill.
+
+Once invoked, it always produces a page:
+
+- With no depth word, use **quick** — the cheapest. The user writes
+  "standard" or "deep" when they want more; never go deeper on your own.
+- "anatomy", "overview" or "the whole module" means a module page.
+- If the request names nothing to trace (a bare `/xray`), ask what feature or
+  module is meant, then go.
 
 ## Depth — decide it first
 
 The depth sets what you produce and how much you may spend. Take it from the
-request; when it says nothing, use **standard**. Record it in `meta.depth`;
+request; when it says nothing, use **quick**. Record it in `meta.depth`;
 the build warns when the data exceeds its budget.
 
 | | **quick** | **standard** | **deep** |
 |---|---|---|---|
-| Asked as | "quick", "just the flow", "for a meeting in 10 minutes" | no qualifier | "deep", "full", "everything", "where exactly can it break" |
+| Asked as | no qualifier (the default), "quick" | "standard", "with the call sequence", "more detail" | "deep", "full", "everything" |
 | Diagrams | flow | flow + sequence, one more if it earns its place | flows with drill-downs, sequence, components, state |
 | Flow nodes | up to 14 | up to 22 | up to 26 per flow |
 | Troubleshooting / findings | 5 / 4 | 8 / 8 | 18 / 20 |
@@ -50,7 +62,8 @@ the build warns when the data exceeds its budget.
 
 A module overview ("anatomy", "the whole module") is `"kind": "module"`; the
 page is headed **Anatomy** instead of X-Ray, and its lists may be twice as
-long. Its recipe is in `references/craft.md` section 6.
+long. A quick anatomy is the architecture diagram and the screen map;
+standard and deep add the data flow, the lifecycle and the journey. Its recipe is in `references/craft.md` section 6.
 
 ## Workflow
 
@@ -101,8 +114,8 @@ rewriting the file.
 **5. Build, fix, check.**
 
 ```bash
-python3 <skill-dir>/scripts/xray.py build tempDocs/xray/<module>-<feature>.xray.json
-python3 <skill-dir>/scripts/xray.py render-check tempDocs/xray/<module>-<feature>.html
+python3 <skill-dir>/scripts/xray.py build xrayDocs/<module>-<feature>.xray.json
+python3 <skill-dir>/scripts/xray.py render-check xrayDocs/<module>-<feature>.html
 ```
 
 A reference that fails means the claim or the file is wrong: go back to the
@@ -115,20 +128,23 @@ or layout.
 **6. Stop the meter and report.**
 
 ```bash
-python3 <skill-dir>/scripts/xray.py usage stop tempDocs/xray/<module>-<feature>.xray.json
+python3 <skill-dir>/scripts/xray.py usage stop xrayDocs/<module>-<feature>.xray.json
 ```
 
 It saves a run record under `runs/` and prints what the run spent. Report in
-at most a dozen lines: the page path, the flow in three to five bullets, the
-findings, the open questions, the verification result, and **the token line
-exactly as printed**.
+at most a dozen lines. **Begin with `X-ray page: <absolute path>`** and the
+command that opens it (`open <path>` on macOS, `start <path>` on Windows,
+`xdg-open <path>` on Linux), so there is no doubt that a page was produced and
+where it is. Then the flow in three to five bullets, the findings, the open
+questions, the verification result, and **the token line exactly as
+printed**.
 
 ## Updating an existing X-ray
 
 Regenerating costs as much as the first time; updating costs a fraction.
 
 ```bash
-python3 <skill-dir>/scripts/xray.py check tempDocs/xray/<name>.html
+python3 <skill-dir>/scripts/xray.py check xrayDocs/<name>.html
 ```
 
 It lists the cited files that changed and the steps that cite them. Re-read
