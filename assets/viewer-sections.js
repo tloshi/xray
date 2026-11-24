@@ -35,8 +35,9 @@ window.XR = window.XR || {};
     if (b.commit) badges.push(`<span class="badge mono">${esc(t("commit", { c: b.commit }))}</span>`);
     if (b.generatedAt) badges.push(`<span class="badge">${esc(t("generated", { d: b.generatedAt }))}</span>`);
     if (b.files) badges.push(`<span class="badge dev-only">${esc(t("files_tracked", { n: Object.keys(b.files).length }))}</span>`);
-    const pill = [m.module, m.package].filter(Boolean).join(" · ");
-    return `${pill ? `<div class="pill">${esc(pill)}</div>` : ""}<h1>${esc(m.title)}</h1>` +
+    const pill = [m.modulePath || m.module, m.package].filter(Boolean).join(" · ");
+    const back = b.index ? `<a class="back" href="${esc(b.index)}">← ${esc(t("all_pages"))}</a>` : "";
+    return `${back}${pill ? `<div class="pill">${esc(pill)}</div>` : ""}<h1>${esc(m.title)}</h1>` +
       `<div class="summary">${paras(m.summary)}</div><div class="meta-row">${badges.join("")}</div>` +
       (m.scope ? `<p class="scope"><strong>${esc(t("scope"))}:</strong> ${rich(m.scope)}</p>` : "");
   }

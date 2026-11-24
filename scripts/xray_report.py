@@ -67,7 +67,7 @@ def render(folder: Path, out_path: Path) -> int:
         diagrams = ", ".join(f"{d.get('kind')} {d.get('items')}" for d in x.get("diagrams") or [])
         rows.append(
             f"<tr><td class='n'>{esc(str(record.get('finishedAt', ''))[:16].replace('T', ' '))}</td>"
-            f"<td>{link}<div class='sub'>{esc(str(record.get('module') or ''))} · {esc(str(record.get('kind') or ''))}</div></td>"
+            f"<td>{link}<div class='sub'>{esc(str(record.get('modulePath') or record.get('module') or ''))} · {esc(str(record.get('kind') or ''))}</div></td>"
             f"<td><span class='chip'>{esc(str(record.get('depth', '')))}</span><div class='sub'>skill {esc(str(record.get('skillVersion', '')))}</div></td>"
             f"<td>{esc(', '.join(record.get('models') or []) or '–')}<div class='sub'>{esc(str(record.get('harness') or ''))}</div></td>"
             f"<td class='n'>{human(t.get('output'))}{_bar(t.get('output'), max_out, 'o')}</td>"

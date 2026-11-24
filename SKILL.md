@@ -31,6 +31,32 @@ This is read-only analysis: never change production code, resources, build
 files or tests. Write only inside the output folder — `xrayDocs/` at the
 repository root unless the user names another.
 
+## Where the page goes
+
+The output folder mirrors the project, and every X-ray has a folder of its
+own, so a page is found where its code is found:
+
+```
+xrayDocs/
+  index.html             map of every page — the build rewrites it
+  profile.md
+  <module path>/         the module's folder, exactly as in the repository
+    <name>/              one X-ray: <name>.xray.json, <name>.html, runs/
+```
+
+- **`<module path>`** is the folder, relative to the repository root, of the
+  module, package, app or service the feature starts in — the one holding its
+  build file (`build.gradle`, `package.json`, `project.json`, `pom.xml`,
+  `*.csproj`, `go.mod` …): `android/checkout`, `web/libs/cart`,
+  `services/billing`. Never a source folder inside it. A repository that is a
+  single package has no such folders; use the feature's own source folder
+  (`src/app/checkout`). Record it in `meta.modulePath`.
+- **`<name>`** is the feature in two to four lower-case words joined by
+  hyphens (`discount-code`). A module page is always named `anatomy`.
+
+Below, `<x>` stands for `xrayDocs/<module path>/<name>/<name>`. Running the
+same feature again updates its folder; it does not make a second one.
+
 ## When this runs
 
 Only on an explicit request: `/xray ...`, `@xray ...`, or the user asking in so
@@ -75,9 +101,10 @@ python3 <skill-dir>/scripts/xray.py usage start
 
 **1. Scope.** Module, feature, depth, language (the user's; default English).
 If two features fit the request, name them and ask once; if nobody can
-answer, take the closest and say so in `meta.scope`. Look in the output folder
-for X-rays of the same module: `xray.py outline <file>` prints one in a few
-dozen lines, and steps already traced there need no re-tracing.
+answer, take the closest and say so in `meta.scope`. Look in
+`xrayDocs/<module path>/` for X-rays of the same module: `xray.py outline
+<file>` prints one in a few dozen lines, and steps already traced there need
+no re-tracing.
 
 **2. Read `references/quickref.md`, then the project profile.** The quick
 reference is the whole format and the tracing method on one page. The profile
@@ -107,15 +134,15 @@ a specific doubt.
   swallowed, behaviour gated by a parameter. Those become troubleshooting
   rows and findings — the reason people open the page.
 
-**4. Write the data file once.** Compose the whole `.xray.json` in a single
+**4. Write the data file once.** Compose the whole `<x>.xray.json` in a single
 write, within the depth budget. Fix later problems with small edits, never by
 rewriting the file.
 
 **5. Build, fix, check.**
 
 ```bash
-python3 <skill-dir>/scripts/xray.py build xrayDocs/<module>-<feature>.xray.json
-python3 <skill-dir>/scripts/xray.py render-check xrayDocs/<module>-<feature>.html
+python3 <skill-dir>/scripts/xray.py build <x>.xray.json
+python3 <skill-dir>/scripts/xray.py render-check <x>.html
 ```
 
 A reference that fails means the claim or the file is wrong: go back to the
@@ -128,10 +155,10 @@ or layout.
 **6. Stop the meter and report.**
 
 ```bash
-python3 <skill-dir>/scripts/xray.py usage stop xrayDocs/<module>-<feature>.xray.json
+python3 <skill-dir>/scripts/xray.py usage stop <x>.xray.json
 ```
 
-It saves a run record under `runs/` and prints what the run spent. Report in
+It saves a run record in the X-ray's `runs/` and prints what the run spent. Report in
 at most a dozen lines. **Begin with `X-ray page: <absolute path>`** and the
 command that opens it (`open <path>` on macOS, `start <path>` on Windows,
 `xdg-open <path>` on Linux), so there is no doubt that a page was produced and
@@ -144,7 +171,8 @@ printed**.
 Regenerating costs as much as the first time; updating costs a fraction.
 
 ```bash
-python3 <skill-dir>/scripts/xray.py check xrayDocs/<name>.html
+python3 <skill-dir>/scripts/xray.py check <x>.html     # one page
+python3 <skill-dir>/scripts/xray.py check xrayDocs     # every page
 ```
 
 It lists the cited files that changed and the steps that cite them. Re-read
@@ -172,4 +200,4 @@ only those functions, edit those steps in the data file, rebuild.
 | `references/tracing.md` | the tracing method in detail — on demand |
 | `profiles/<project>.md` | a project's layout and conventions — read the one that matches |
 | `examples/template.xray.json` | a full skeleton, if you want one to copy |
-| `scripts/xray.py` | `usage start/stop`, `build`, `check`, `outline`, `render-check`, `runs` |
+| `scripts/xray.py` | `usage start/stop`, `build`, `check`, `outline`, `render-check`, `runs`, `index` |

@@ -245,7 +245,8 @@ def stop(data_path: Path, doc: dict, commit: str, skill_version: str, transcript
     record = {
         "xrayRun": RUN_SCHEMA,
         "name": data_path.name.replace(".xray.json", ""),
-        "title": meta.get("title"), "module": meta.get("module"), "kind": doc.get("kind"),
+        "title": meta.get("title"), "module": meta.get("module"), "modulePath": meta.get("modulePath"),
+        "kind": doc.get("kind"),
         "depth": meta.get("depth", "quick"),
         "startedAt": datetime.datetime.fromtimestamp(started).isoformat(timespec="seconds"),
         "finishedAt": datetime.datetime.fromtimestamp(now).isoformat(timespec="seconds"),

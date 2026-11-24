@@ -2,7 +2,8 @@
 """X-Ray command line: build, check and render-check an X-ray page.
 
     xray.py build <data.xray.json> [-o page.html] [--fix-refs] [--no-verify]
-    xray.py check <page.html>            # has the cited code changed since, and which steps?
+    xray.py check <page.html | folder>   # has the cited code changed since, and which steps?
+    xray.py index [folder]               # rewrite the map of every page in the output folder
     xray.py outline <data.xray.json>     # compact text view: cheap to read, good for diffs
     xray.py render-check <page.html>     # does every diagram render? (needs Chrome)
     xray.py usage start                  # begin measuring the tokens this run spends
@@ -29,17 +30,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import xray_refs  # noqa: E402
 import xray_schema  # noqa: E402
+import xray_layout  # noqa: E402
+import xray_index  # noqa: E402
 import xray_report  # noqa: E402
 import xray_usage  # noqa: E402
 
-SKILL_VERSION = "1.1"
+SKILL_VERSION = "1.2"
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 JS_FILES = ["viewer-i18n.js", "viewer-core.js", "viewer-diagrams.js", "viewer-panzoom.js",
             "viewer-sections.js", "viewer-options.js", "viewer-app.js"]
 MERMAID_CDN = "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js"
 VENDORED_MERMAID = ASSETS / "vendor" / "mermaid.min.js"
-DATA_RE = re.compile(r'<script id="xray-data" type="application/json">(.*?)</script>', re.S)
 BROWSERS = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
@@ -146,6 +148,7 @@ def cmd_build(args: argparse.Namespace) -> int:
     tree = xray_refs.SourceTree(root, (doc.get("meta") or {}).get("sourceRoot"))
     if not args.no_verify:
         verify_tests(document, tree, report, stats.files)
+    xray_layout.check(doc, data_path, root, sorted(stats.files), report)
 
     quiet = getattr(args, "quiet", False)
     if not quiet:
@@ -179,31 +182,37 @@ def cmd_build(args: argparse.Namespace) -> int:
         document["_build"]["usage"] = {k: last_run.get(k) for k in ("tokens", "apiCalls", "models", "durationSeconds")}
     out_path = Path(args.output).resolve() if args.output else data_path.with_name(
         data_path.name.replace(".xray.json", "").replace(".json", "") + ".html")
+    # Filed where the layout puts it, the page links back to the map of its output folder.
+    out = None if args.output else xray_layout.out_root(data_path, doc)
+    if out and not xray_index.writable(out):
+        out = None
+    if out:
+        document["_build"]["index"] = xray_layout.index_href(doc)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(render_page(document, args.inline_mermaid, args.fragment), encoding="utf-8")
+    index = xray_index.render(out) if out else None
 
     verified = "not verified (--no-verify)" if args.no_verify else (
         f"{stats.total} verified, {stats.with_symbol} with a symbol check")
     if not quiet:
         say(f"\nBuilt {out_path}")
         say(f"  references: {verified}   files tracked: {len(stats.files)}   warnings: {len(report.warnings)}")
+        if index:
+            say(f"  index: {index[0]} ({index[1]} page{'' if index[1] == 1 else 's'})")
     return EXIT_OK
 
 
-def cmd_check(args: argparse.Namespace) -> int:
-    page_path = Path(args.page).resolve()
-    match = DATA_RE.search(page_path.read_text(encoding="utf-8"))
-    if not match:
-        fail(f"{page_path}: not a X-Ray page (no embedded data)")
-        return EXIT_INVALID
-    document = json.loads(match.group(1).replace("<\\/", "</"))
+def check_page(page_path: Path, document: dict, root: Path, label: str, brief: bool) -> int:
+    """Reports one page; with `brief`, a fresh page takes a single line."""
     build = document.get("_build") or {}
     recorded = build.get("files") or {}
-    root = find_root(args.root, page_path)
     now = xray_refs.current_digests(root, sorted(recorded))
     changed = [p for p in sorted(recorded) if now[p] is not None and now[p] != recorded[p]]
     missing = [p for p in sorted(recorded) if now[p] is None]
-    say(f"{page_path.name}: generated {build.get('generatedAt', '?')} at commit {build.get('commit', '?')}, "
+    if brief and not (changed or missing):
+        say(f"  fresh  {label}")
+        return EXIT_OK
+    say(f"{label}: generated {build.get('generatedAt', '?')} at commit {build.get('commit', '?')}, "
         f"{len(recorded)} source files tracked")
     for path in changed:
         say(f"  changed  {path}")
@@ -216,6 +225,44 @@ def cmd_check(args: argparse.Namespace) -> int:
         say(f"\nSTALE: {len(changed)} changed, {len(missing)} missing.")
         return EXIT_STALE
     say("\nFresh: none of the cited source files has changed.")
+    return EXIT_OK
+
+
+def cmd_check(args: argparse.Namespace) -> int:
+    target = Path(args.page).resolve()
+    root = find_root(args.root, target)
+    if not target.is_dir():
+        document = xray_layout.read_page(target)
+        if document is None:
+            fail(f"{target}: not an X-ray page (no embedded data)")
+            return EXIT_INVALID
+        return check_page(target, document, root, target.name, brief=False)
+    pages = stale = 0
+    for page in sorted(target.rglob("*.html")):
+        document = xray_layout.read_page(page)
+        if document is None:
+            continue
+        pages += 1
+        if check_page(page, document, root, page.relative_to(target).as_posix(), brief=True) == EXIT_STALE:
+            stale += 1
+            say()
+    if not pages:
+        say(f"No X-ray pages under {target}.")
+        return EXIT_OK
+    say(f"\n{pages} page(s) checked: {pages - stale} fresh, {stale} stale.")
+    return EXIT_STALE if stale else EXIT_OK
+
+
+def cmd_index(args: argparse.Namespace) -> int:
+    folder = Path(args.folder or (xray_layout.DEFAULT_OUT if Path(xray_layout.DEFAULT_OUT).is_dir() else ".")).resolve()
+    if not folder.is_dir():
+        fail(f"{folder}: no such folder")
+        return EXIT_INVALID
+    written = xray_index.render(folder)
+    if written is None:
+        fail(f"{folder / xray_index.INDEX_NAME} exists and was not written by X-Ray; it was left untouched.")
+        return EXIT_INVALID
+    say(f"Wrote {written[0]} ({written[1]} page{'' if written[1] == 1 else 's'})")
     return EXIT_OK
 
 
@@ -323,7 +370,9 @@ def cmd_runs(args: argparse.Namespace) -> int:
     for r in runs:
         t = r.get("tokens") or {}
         x = r.get("xray") or {}
-        say(f"{str(r.get('finishedAt', ''))[:16]:<17}{str(r.get('name', ''))[:42]:<44}{str(r.get('depth', ''))[:9]:<10}"
+        label = "/".join(str(part) for part in (r.get("modulePath"), r.get("name")) if part)
+        label = label if len(label) <= 42 else "…" + label[-41:]
+        say(f"{str(r.get('finishedAt', ''))[:16]:<17}{label:<44}{str(r.get('depth', ''))[:9]:<10}"
             f"{h(t.get('output')):>8}{h(t.get('cacheRead')):>11}{h(t.get('cacheWrite')):>10}{str(r.get('apiCalls') or '–'):>7}"
             f"{round((r.get('durationSeconds') or 0) / 60):>6}{str(x.get('dataKB', '–')):>6}{str(x.get('references', '–')):>6}"
             f"  {', '.join(r.get('models') or [])}")
@@ -377,6 +426,7 @@ def cmd_render_check(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="xray.py", description=__doc__.splitlines()[0])
+    parser.add_argument("--version", action="version", version=f"xray {SKILL_VERSION}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     build = sub.add_parser("build", help="validate the data, verify code references and write the page")
@@ -391,9 +441,13 @@ def main(argv: list[str] | None = None) -> int:
     build.set_defaults(run=cmd_build)
 
     check = sub.add_parser("check", help="report whether cited source files changed since the page was built")
-    check.add_argument("page")
+    check.add_argument("page", help="one page, or a folder to check every page under it")
     check.add_argument("--root")
     check.set_defaults(run=cmd_check)
+
+    index = sub.add_parser("index", help="rewrite index.html, the map of every page in the output folder")
+    index.add_argument("folder", nargs="?", help="the output folder (default: xrayDocs, else the current folder)")
+    index.set_defaults(run=cmd_index)
 
     usage = sub.add_parser("usage", help="measure the tokens an X-ray run spends and save a run record")
     usage.add_argument("action", choices=["start", "stop"])

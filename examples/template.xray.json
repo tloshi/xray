@@ -4,10 +4,11 @@
   "meta": {
     "title": "Feature name, as the business calls it",
     "module": "modulename",
+    "modulePath": "app/modulename",
     "package": "com.example.app.modulename",
     "summary": "One plain-language paragraph: what this feature does, who uses it and when. No class names.",
     "scope": "Covers the path from <trigger> to <outcome>. Does not cover <what you left out>.",
-    "sourceRoot": "app/modulename",
+    "sourceRoot": "app/modulename/src/main",
     "depth": "standard",
     "lang": "en"
   },

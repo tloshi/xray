@@ -26,10 +26,11 @@ what is wrong, so when in doubt, build and read the output.
   "meta": {
     "title": "Applying a discount code",
     "module": "checkout",
+    "modulePath": "app/checkout",
     "package": "com.example.shop.checkout",
     "summary": "One short paragraph in plain language: what this does and for whom.",
     "scope": "Covers … Does not cover …",
-    "sourceRoot": "app/checkout",
+    "sourceRoot": "app/checkout/src/main",
     "depth": "standard",
     "lang": "en",
     "lens": "business"
@@ -54,11 +55,12 @@ what is wrong, so when in doubt, build and read the output.
 | `kind` | yes | `"feature"` or `"module"` |
 | `meta.title` | yes | the page title — a name, not a sentence |
 | `meta.module` | yes | module name |
+| `meta.modulePath` | yes | the module's folder, relative to the repository root — the folder holding its build file, never a source folder inside it. It decides where the page is filed: `<output folder>/<modulePath>/<name>/<name>.xray.json`. The build stops if the folder does not exist and warns if the cited files belong to another module. A data file from before version 1.2 that lacks it still builds, with a warning |
 | `meta.summary` | yes | plain-language paragraph; the first thing a manager reads |
 | `meta.scope` | feature | what is covered and what is not |
 | `meta.depth` | yes | `quick`, `standard` or `deep` — how far this X-ray goes. It is shown on the page and sets the budget the build checks (node counts, rows, text length, file size); see the table in SKILL.md |
 | `meta.package` | no | shown next to the module |
-| `meta.sourceRoot` | no | folder that `refs` paths may be relative to |
+| `meta.sourceRoot` | no | folder that `refs` paths may be relative to; usually deeper than `modulePath` |
 | `meta.lang` | no | `en` (default), `de` or `sq` — the language of the viewer's own labels; write your content in the same language |
 | `meta.lens` | no | lens shown first: `business` (default) or `developer` |
 | `glance` | no | 2–4 key facts shown as cards. Counts (steps, decisions, failure points, switches) are added automatically |

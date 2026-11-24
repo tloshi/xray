@@ -8,8 +8,9 @@ Everything needed to write a valid X-ray, on one page. Open `schema.md`,
 ```json
 {
   "xray": 1, "kind": "feature",
-  "meta": { "title": "…", "module": "…", "summary": "plain language, no class names",
-            "scope": "Covers … Does not cover …", "sourceRoot": "app/<module>",
+  "meta": { "title": "…", "module": "…", "modulePath": "app/<module>",
+            "summary": "plain language, no class names",
+            "scope": "Covers … Does not cover …", "sourceRoot": "app/<module>/src/main",
             "depth": "standard", "lang": "en" },
   "glance":  [{ "label": "Trigger", "value": "…" }],
   "caveats": ["what this checkout did not let you see"],
@@ -75,7 +76,8 @@ literal text on that line — a function name, a constant, a log message; it
 may itself contain `#`. The
 path is relative to the repository root or to `meta.sourceRoot` — point
 `sourceRoot` at the deepest folder the feature's files share and every
-reference gets shorter. Pick text
+reference gets shorter. (`meta.modulePath` is a different thing: the module's
+own folder, which decides where the page is filed — see SKILL.md.) Pick text
 that means one thing (`#printBatch`, not `#print`). One reference per step is
 enough; two when a step joins two places. Every identifier you put in `tech`
 should occur in a file that step cites, or the build warns.

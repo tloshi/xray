@@ -32,8 +32,6 @@ read `~/.claude/skills/`):
 git clone https://github.com/tloshi/xray.git ~/.claude/skills/xray
 ```
 
-Update later with `git -C ~/.claude/skills/xray pull`.
-
 For a whole team, put it in the project so everyone gets it with the code:
 
 ```bash
@@ -49,6 +47,29 @@ Requirements: Python 3.9+ (standard library only). Chrome, Edge or Chromium is
 optional and enables the render check. Open a new session after installing —
 skills are loaded when a session starts.
 
+## Update
+
+How you update depends on how you installed:
+
+| Installed with | Update with |
+|---|---|
+| `git clone … ~/.claude/skills/xray` | `git -C ~/.claude/skills/xray pull` |
+| `./install.sh --link` | `git pull` in the clone — the link already points at it |
+| `./install.sh` (a copy) | `git pull` in the clone, then `./install.sh` again |
+| `./install.sh --project <repo>` (a copy in the team's repository) | `git pull` in the clone, `./install.sh --project <repo>` again, then commit the changed `.claude/skills/xray` so everyone gets it with their next pull |
+
+Then open a new session; a running one keeps the version it started with.
+`python3 ~/.claude/skills/xray/scripts/xray.py --version` shows what is
+installed.
+
+**Coming from 1.1.** Pages used to sit side by side in `xrayDocs/`. They keep
+working and are listed in the index under "Not filed under a module yet". To
+file one where it now belongs, add `meta.modulePath` to its `.xray.json`, move
+the data file, the page and its run records into
+`xrayDocs/<module path>/<name>/`, and build it again; the build prints the
+exact path when a file is in the wrong place. New pages are filed correctly
+without any of this.
+
 ## Use
 
 Type `/xray` followed by what you want to understand (`@xray` in OpenCode).
@@ -62,21 +83,57 @@ That always produces a page; a question without it gets a normal answer.
 Add the language if you want one other than English ("in German"). English,
 German and Albanian viewer labels are built in.
 
+The reply always begins with `X-ray page:` and the path, so you know a page
+was made and where it is.
+
+## Where pages go
+
 Pages are written to `xrayDocs/` at the root of the project unless you name
-another folder. The reply always begins with `X-ray page:` and the path, so
-you know a page was made and where it is.
+another folder. Inside, the folder mirrors the project — a page is found
+where its code is found — and every X-ray has a folder of its own:
+
+```
+xrayDocs/
+├── index.html                    map of every page, rewritten by each build
+├── profile.md                    how this project is laid out (written on the first run)
+├── android/checkout/             the module's folder, exactly as in the repository
+│   ├── anatomy/                  the module overview
+│   │   ├── anatomy.html
+│   │   ├── anatomy.xray.json
+│   │   └── runs/
+│   └── discount-code/            one feature
+│       ├── discount-code.html    the page — open this
+│       ├── discount-code.xray.json   the data it was built from
+│       └── runs/                 one record per run: tokens, model, commit
+└── web/libs/cart/
+    └── add-to-cart/ …
+```
+
+The module's folder is the one that holds its build file (`build.gradle`,
+`package.json`, `project.json`, `pom.xml`, `*.csproj`, `go.mod` …), so the
+same rule fits an Android module, a web app or library and a backend service.
+The build checks it: a folder that does not exist stops the build, and a
+source folder inside a module, or a page filed in the wrong place, is
+reported with the path it should have.
+
+Open `xrayDocs/index.html` to browse everything; each page links back to it.
+Running a feature again updates its folder and adds a record under `runs/`.
 
 ## Commands
 
 ```bash
-python3 scripts/xray.py build xrayDocs/<name>.xray.json          # validate, verify references, write the page
-python3 scripts/xray.py build xrayDocs/<name>.xray.json --fix-refs   # snap drifted line numbers to their symbol
-python3 scripts/xray.py render-check xrayDocs/<name>.html        # confirm every diagram draws (headless Chrome)
-python3 scripts/xray.py check xrayDocs/<name>.html               # has the cited code changed? exits 2 if stale
+# <x> = xrayDocs/<module path>/<name>/<name>
+python3 scripts/xray.py build <x>.xray.json              # validate, verify references, write the page and the index
+python3 scripts/xray.py build <x>.xray.json --fix-refs   # snap drifted line numbers to their symbol
+python3 scripts/xray.py render-check <x>.html            # confirm every diagram draws (headless Chrome)
+python3 scripts/xray.py check <x>.html                   # has the cited code changed? exits 2 if stale
+python3 scripts/xray.py check xrayDocs                   # the same for every page under a folder
+python3 scripts/xray.py index xrayDocs                   # rewrite index.html by hand (after moving pages)
 ```
 
-`check` is CI-friendly: run it over the committed pages to learn which X-rays
-need regenerating after a change.
+`check` is CI-friendly: `check xrayDocs` goes through every committed page,
+prints one line for each that is still current and the affected steps for
+each that is not, and exits 2 if any page is stale.
 
 ## How the trust model works
 
@@ -127,7 +184,7 @@ Three habits keep it cheap:
 ## Measuring and comparing runs
 
 Each run brackets itself with `usage start` and `usage stop`. The stop writes
-a run record — `runs/<timestamp>-<name>.run.json` next to the page — with the
+a run record — `runs/<timestamp>-<name>.run.json` in the X-ray's own folder — with the
 tokens by kind, model calls, what was read, the model, the commit, the depth
 and the size of the result. The page footer shows the same numbers.
 
@@ -177,7 +234,7 @@ xray/
 ├── SKILL.md            the workflow the agent follows
 ├── references/         tracing guide, data format, craft guide
 ├── examples/           a skeleton to copy and a complete real X-ray to learn from
-├── scripts/xray.py     build · check · render-check
+├── scripts/xray.py     build · check · index · render-check
 ├── assets/             the viewer (HTML, CSS, JS) — shared by every page
 └── evals/              test prompts for the skill itself
 ```

@@ -39,4 +39,4 @@ fi
 
 python3 "$target/scripts/xray.py" --help >/dev/null
 echo "X-Ray installed at $target"
-echo "Open a new session and ask, for example: \"quick: how does <feature> work in <module>?\""
+echo "Open a new session and type, for example: /xray how does <feature> work in <module>?"

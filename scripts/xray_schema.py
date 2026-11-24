@@ -422,6 +422,8 @@ def validate(doc: dict, report: Report, size_bytes: int | None = None) -> None:
             report.error(f"meta.{key}", "is required")
     if feature and not _is_text(meta.get("scope")):
         report.warn("meta.scope", "say what this X-ray covers and what it leaves out")
+    if not _is_text(meta.get("modulePath")):
+        report.warn("meta.modulePath", "name the module's folder in the repository; it decides where the page is filed")
 
     diagrams = doc.get("diagrams") or []
     if not diagrams:
